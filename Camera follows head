@@ -1,5 +1,0 @@
--- Make CurrentCamera follow the head
-local camera = game.Workspace.CurrentCamera
-local character = game.Players.LocalPlayer.Character
-local head = character:WaitForChild("Head")
-camera.CameraSubject = head
