@@ -1,9 +1,9 @@
  -- // ANIMATOR EDITED BY gObl00x \\ --
 local Animator6D function()
-local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
-full.Parent = game:GetService('Workspace')
-local fallback = game:GetObjects('rbxassetid://'..)[1].AnimSaves
-	:FindFirstChildOfClass('KeyframeSequence')
+local full = game:GetObjects("rbxassetid://107495486817639")[1]:Clone()
+full.Parent = game:GetService("Workspace")
+local fallback = game:GetObjects("rbxassetid://"..)[1].AnimSaves
+	:FindFirstChildOfClass("KeyframeSequence")
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
@@ -41,7 +41,7 @@ end)
 if char:FindFirstChild("Animate") then
 	char.Animate.Enabled = true
 end
-for i, v in pairs(hum:GetPlayingAnimationTracks()) do
+for i, v in pairs(Humanoid:GetPlayingAnimationTracks()) do
 	v:Stop()
 end
 local h = char.Head
