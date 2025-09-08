@@ -1,7 +1,7 @@
  -- // ANIMATOR6D/PLAYER DEFINITIONS \\ --
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-fallback = mainAnim
+fallback = animation
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
