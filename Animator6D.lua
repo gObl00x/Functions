@@ -1,6 +1,5 @@
  -- // ANIMATOR6D/PLAYER DEFINITIONS \\ --
-local Animator6D function()
- local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
+local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
 fallback = mainAnim
 fallback.Parent = full
@@ -282,5 +281,4 @@ local function playanim(id, speed, isDance, customInstance)
 	currentanim.Looped = true
 	currentanim:Play()
 end
-end) -- Close Animator6D
 print("Animator6D loaded")
