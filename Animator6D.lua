@@ -1,9 +1,8 @@
- -- // ANIMATOR EDITED BY gObl00x \\ --
+ -- // ANIMATOR6D/PLAYER DEFINITIONS \\ --
 local Animator6D function()
-local full = game:GetObjects("rbxassetid://107495486817639")[1]:Clone()
-full.Parent = game:GetService("Workspace")
-local fallback = game:GetObjects("rbxassetid://"..)[1].AnimSaves
-	:FindFirstChildOfClass("KeyframeSequence")
+ local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
+full.Parent = game:GetService('Workspace')
+local fallback = mainAnim
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
@@ -11,7 +10,7 @@ fallback.Parent = full
 local is = newproxy(true)
 local function loadlocalasset(id)
 	local id = tostring(id)
-	local id = id:gsub("^rbxassetid://", "")
+	local id = id:gsub('^rbxassetid://', '')
 	local _, asset = pcall(function()
 		return full[id]
 	end)
@@ -25,38 +24,38 @@ getmetatable(is).__namecall = function(_, id)
 	return loadlocalasset(id)
 end
 
-local randompart = IT("Part", game:GetService("RunService"))
+local randompart = Instance.new('Part', game:GetService('RunService'))
 
 local playbacktrack = true
-local script = IT("LocalScript")
+local script = Instance.new('LocalScript')
 real = true
 local timeposcur = 0
 pcall(function()
 	local OxideApi = loadstring(
 		game:HttpGet(
-			"https://raw.githubusercontent.com/somethingsimade/Utils/refs/heads/main/OxideApi"
+			'https://raw.githubusercontent.com/somethingsimade/Utils/refs/heads/main/OxideApi'
 		)
 	)()
 end)
-if char:FindFirstChild("Animate") then
+if char:FindFirstChild('Animate') then
 	char.Animate.Enabled = true
 end
-for i, v in pairs(Humanoid:GetPlayingAnimationTracks()) do
+for i, v in pairs(hum:GetPlayingAnimationTracks()) do
 	v:Stop()
 end
 local h = char.Head
 local t = char.Torso
 local hrp = char.HumanoidRootPart
-local RunService = game:GetService("RunService")
+local RunService = game:GetService('RunService')
 
 
 local function makeanimlibrary() --// yeah sorry im not going to edit and mix at least 1000 lines of modules together under 30 minutes
-	local RunService = game:GetService("RunService")
+	local RunService = game:GetService('RunService')
 
 	local __EasingStyles__ = Enum.EasingStyle
 	local __EasingDirections__ = Enum.EasingDirection
-	local __Enum__PoseEasingStyle__ = #"Enum.PoseEasingStyle."
-	local __Enum__PoseEasingDirection__ = #"Enum.PoseEasingDirection."
+	local __Enum__PoseEasingStyle__ = #'Enum.PoseEasingStyle.'
+	local __Enum__PoseEasingDirection__ = #'Enum.PoseEasingDirection.'
 
 	local function EasingStyleFix(style)
 		local name = string.sub(tostring(style), __Enum__PoseEasingStyle__ + 1)
@@ -81,16 +80,16 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 	local function ConvertToTable(animationInstance)
 		assert(
 			animationInstance
-				and typeof(animationInstance) == "Instance"
-				and animationInstance:IsA("KeyframeSequence"),
-			"ConvertToTable requires a KeyframeSequence instance"
+				and typeof(animationInstance) == 'Instance'
+				and animationInstance:IsA('KeyframeSequence'),
+			'ConvertToTable requires a KeyframeSequence instance'
 		)
 		local keyframes = animationInstance:GetKeyframes()
 		local sequence = {}
 		for i, frame in ipairs(keyframes) do
 			local entry = { Time = frame.Time, Data = {} }
 			for _, child in ipairs(frame:GetDescendants()) do
-				if child:IsA("Pose") and child.Weight > 0 then
+				if child:IsA('Pose') and child.Weight > 0 then
 					entry.Data[child.Name] = {
 						CFrame = child.CFrame,
 						EasingStyle = EasingStyleFix(child.EasingStyle),
@@ -111,15 +110,15 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 
 	local function AutoGetMotor6D(model, motorType)
 		assert(
-			model and typeof(model) == "Instance" and model:IsA("Model"),
-			"AutoGetMotor6D requires a Model instance"
+			model and typeof(model) == 'Instance' and model:IsA('Model'),
+			'AutoGetMotor6D requires a Model instance'
 		)
 		local useBone = false
-		if motorType == "Bone" then
+		if motorType == 'Bone' then
 			useBone = true
 		else
 			for _, desc in ipairs(model:GetDescendants()) do
-				if desc:IsA("Bone") then
+				if desc:IsA('Bone') then
 					useBone = true
 					break
 				end
@@ -128,15 +127,15 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 		local motors = {}
 		if useBone then
 			for _, bone in ipairs(model:GetDescendants()) do
-				if bone:IsA("Bone") then
+				if bone:IsA('Bone') then
 					motors[bone.Name] = bone
 				end
 			end
 		else
 			for _, part in ipairs(model:GetDescendants()) do
-				if part:IsA("BasePart") then
+				if part:IsA('BasePart') then
 					for _, joint in ipairs(part:GetJoints()) do
-						if joint:IsA("Motor6D") and joint.Part1 == part then
+						if joint:IsA('Motor6D') and joint.Part1 == part then
 							motors[part.Name] = joint
 							break
 						end
@@ -161,21 +160,21 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 		self.Speed = 1
 		self.Settings = settings or {}
 
-		if typeof(target) == "Instance" and target:IsA("Model") then
+		if typeof(target) == 'Instance' and target:IsA('Model') then
 			self.Motor6D = AutoGetMotor6D(target, motorType)
 		else
 			self.Motor6D = target
 		end
 
-		assert(keyframeSeq, "Animation keyframe sequence required")
-		if typeof(keyframeSeq) == "Instance" then
+		assert(keyframeSeq, 'Animation keyframe sequence required')
+		if typeof(keyframeSeq) == 'Instance' then
 			local seq, looped = ConvertToTable(keyframeSeq)
 			self.Animation = seq
 			self.Looped = looped
-		elseif type(keyframeSeq) == "table" then
+		elseif type(keyframeSeq) == 'table' then
 			self.Animation = keyframeSeq
 		else
-			error("Invalid keyframe sequence format")
+			error('Invalid keyframe sequence format')
 		end
 
 		self.Length = self.Animation[#self.Animation].Time
@@ -225,7 +224,7 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 			local alpha = span > 0 and (pos - prev.Time) / span or 0
 			for joint, prevData in pairs(prev.Data) do
 				local nextData = next.Data[joint] or prevData
-				local ease = game:GetService("TweenService"):GetValue(
+				local ease = game:GetService('TweenService'):GetValue(
 					alpha,
 					nextData.EasingStyle,
 					nextData.EasingDirection
@@ -257,11 +256,10 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 end
 
 local animplayer = makeanimlibrary()
+local rigTable = animplayer.AutoGetMotor6D(char, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-
-local rigTable = animplayer.AutoGetMotor6D(char, "Motor6D")
 local function playanim(id, speed, isDance, customInstance)
 	speed = speed or 1
 
@@ -279,10 +277,10 @@ local function playanim(id, speed, isDance, customInstance)
 
 	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
 
-	currentanim = animplayer.new(rigTable, asset, nil, nil, "Motor6D")
+	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
 	currentanim.Speed = speed
 	currentanim.Looped = true
 	currentanim:Play()
 end
-end) -- Close Animator Function
-print("Animator Loaded (Only works on Epik R6 Dancezzz, Modify it if ur an editor..)")
+end) -- Close Animator6D
+print("Animator6D loaded")
