@@ -2,7 +2,7 @@
 local Animator6D function()
  local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-local fallback = mainAnim
+fallback = mainAnim
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
