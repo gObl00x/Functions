@@ -1,8 +1,8 @@
  -- // ANIMATOR6D/PLAYER DEFINITIONS \\ --
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-fallback = animation
-fallback.Parent = full
+animation = fallback
+animation.Parent = full
 
 --local is = game:GetService("InsertService")
 --// userdata propaganda
@@ -14,7 +14,7 @@ local function loadlocalasset(id)
 		return full[id]
 	end)
 	if not _ or not asset then
-		asset = fallback
+		asset = animation
 	end
 
 	return asset:Clone()
@@ -29,13 +29,6 @@ local playbacktrack = true
 local script = Instance.new('LocalScript')
 real = true
 local timeposcur = 0
-pcall(function()
-	local OxideApi = loadstring(
-		game:HttpGet(
-			'https://raw.githubusercontent.com/somethingsimade/Utils/refs/heads/main/OxideApi'
-		)
-	)()
-end)
 if char:FindFirstChild('Animate') then
 	char.Animate.Enabled = true
 end
@@ -281,4 +274,4 @@ local function playanim(id, speed, isDance, customInstance)
 	currentanim.Looped = true
 	currentanim:Play()
 end
-print("Animator6D loaded")
+print("Animator6D Loaded")
