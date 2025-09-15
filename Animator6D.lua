@@ -14,7 +14,7 @@ local function loadlocalasset(id)
 		return full[id]
 	end)
 	if not _ or not asset then
-		asset = animation
+		asset = fallback
 	end
 
 	return asset:Clone()
