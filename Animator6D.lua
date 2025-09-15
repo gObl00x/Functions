@@ -1,7 +1,7 @@
  -- // ANIMATOR6D/PLAYER DEFINITIONS \\ --
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-local fallback = animPath
+fallback = animPath
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
@@ -250,28 +250,36 @@ end
 local animplayer = makeanimlibrary()
 local rigTable = animplayer.AutoGetMotor6D(char, 'Motor6D')
 
-local currentanim = nil
-local iscurrentadance = nil
-local function playanim(id, speed, isDance, customInstance)
-	speed = speed or 1
+-- GLOBALS
+_G.currentanim = nil
+_G.iscurrentadance = nil
 
-	local asset
-	if customInstance then
-		asset = customInstance
-	else
-		asset = is:LoadLocalAsset(id)
-	end
+function _G.playanim(id, speed, isDance, customInstance)
+    speed = speed or 1
 
-	if currentanim then
-		currentanim:Stop()
-	end
-	iscurrentadance = isDance
+    local asset
+    if customInstance then
+        asset = customInstance
+    else
+        local ok, result = pcall(function()
+            return is:LoadLocalAsset(id)
+        end)
+        if ok and result then
+            asset = result
+        else
+            asset = _G.animPath -- GLOBAL FALLBACK
+        end
+    end
 
-	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
+    if _G.currentanim then
+        _G.currentanim:Stop()
+    end
+    _G.iscurrentadance = isDance
 
-	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-	currentanim.Speed = speed
-	currentanim.Looped = true
-	currentanim:Play()
+    local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
+
+    _G.currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
+    _G.currentanim.Speed = speed
+    _G.currentanim.Looped = true
+    _G.currentanim:Play()
 end
-print("Animator6D Loaded")
