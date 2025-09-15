@@ -1,8 +1,8 @@
  -- // ANIMATOR6D/PLAYER DEFINITIONS \\ --
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-animation = fallback
-animation.Parent = full
+local fallback = game:GetObjects("rbxassetid://".. id)[1]:FindFirstChildOfClass("KeyframeSequence")
+fallback.Parent = full
 
 --local is = game:GetService("InsertService")
 --// userdata propaganda
