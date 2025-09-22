@@ -1,10 +1,12 @@
- -- // ANIMATOR6D/PLAYER DEFINITIONS \\ --
+local player = game.Players.LocalPlayer
+local character = player.Character
+local humanoid = character.Humanoid
+
+-- AnimationFrame
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-fallback = _G.animPath
-  if fallback then
+local fallback = getgenv().Path
 fallback.Parent = full
-end
 
 --local is = game:GetService("InsertService")
 --// userdata propaganda
@@ -25,21 +27,22 @@ getmetatable(is).__namecall = function(_, id)
 	return loadlocalasset(id)
 end
 
-local randompart = Instance.new('Part', game:GetService('RunService'))
+local randomaura = Instance.new('Part', game:GetService('RunService'))
 
 local playbacktrack = true
 local script = Instance.new('LocalScript')
 real = true
 local timeposcur = 0
-if char:FindFirstChild('Animate') then
-	char.Animate.Enabled = true
+
+if character:FindFirstChild('Animate') then
+	character.Animate.Enabled = true
 end
-for i, v in pairs(hum:GetPlayingAnimationTracks()) do
+for i, v in pairs(humanoid:GetPlayingAnimationTracks()) do
 	v:Stop()
 end
-local h = char.Head
-local t = char.Torso
-local hrp = char.HumanoidRootPart
+local h = character.Head
+local t = character.Torso
+local RootPart = character.HumanoidRootPart
 local RunService = game:GetService('RunService')
 
 
@@ -126,11 +129,11 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 				end
 			end
 		else
-			for _, part in ipairs(model:GetDescendants()) do
-				if part:IsA('BasePart') then
-					for _, joint in ipairs(part:GetJoints()) do
-						if joint:IsA('Motor6D') and joint.Part1 == part then
-							motors[part.Name] = joint
+			for _, aura in ipairs(model:GetDescendants()) do
+				if aura:IsA('BasePart') then
+					for _, joint in ipairs(aura:GetJoints()) do
+						if joint:IsA('Motor6D') and joint.Part1 == aura then
+							motors[aura.Name] = joint
 							break
 						end
 					end
@@ -140,7 +143,7 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 		return motors
 	end
 
-	local cframe_zero = CFrame.new()
+	local cframe_zero = CF()
 	local UpdateEvent = RunService.PreSimulation
 
 	local AnimLibrary = {}
@@ -250,38 +253,29 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 end
 
 local animplayer = makeanimlibrary()
-local rigTable = animplayer.AutoGetMotor6D(char, 'Motor6D')
+local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
--- GLOBALS
-_G.currentanim = nil
-_G.iscurrentadance = nil
+local currentanim = nil
+local iscurrentadance = nil
+getgenv().playanim = function(id, speed, isDance, customInstance)
+	speed = speed or 1
 
-function _G.playanim(id, speed, isDance, customInstance)
-    speed = speed or 1
+	local asset
+	if customInstance then
+		asset = customInstance
+	else
+		asset = is:LoadLocalAsset(id)
+	end
 
-    local asset
-    if customInstance then
-        asset = customInstance
-    else
-        local ok, result = pcall(function()
-            return is:LoadLocalAsset(id)
-        end)
-        if ok and result then
-            asset = result
-        else
-            asset = _G.animPath -- GLOBAL FALLBACK
-        end
-    end
+	if currentanim then
+		currentanim:Stop()
+	end
+	iscurrentadance = isDance
 
-    if _G.currentanim then
-        _G.currentanim:Stop()
-    end
-    _G.iscurrentadance = isDance
+	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
 
-    local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
-
-    _G.currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-    _G.currentanim.Speed = speed
-    _G.currentanim.Looped = true
-    _G.currentanim:Play()
+	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
+	currentanim.Speed = speed
+	currentanim.Looped = false
+	currentanim:Play()
 end
