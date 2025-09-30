@@ -1,11 +1,19 @@
+-- // ANIMATOR 6D \\ --
+--[[Instructions:
+Step 1: Make a loadstring with this code
+Step 2: Use this inside a tool, key, or simply outside the loadstring.
+Step 3: write your code like this:
+  getgenv().animPath = (path of a model's AnimSaves)
+Step 4: u already have the anim
+--]]
+--
 local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
-
--- AnimationFrame
+--
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-local fallback = getgenv().Path
+local fallback = getgenv().animPath
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
@@ -42,7 +50,7 @@ for i, v in pairs(humanoid:GetPlayingAnimationTracks()) do
 end
 local h = character.Head
 local t = character.Torso
-local RootPart = character.HumanoidRootPart
+local HumanoidRootPart = character.HumanoidRootPart
 local RunService = game:GetService('RunService')
 
 
@@ -143,7 +151,7 @@ local function makeanimlibrary() --// yeah sorry im not going to edit and mix at
 		return motors
 	end
 
-	local cframe_zero = CF()
+	local cframe_zero = CFrame.new()
 	local UpdateEvent = RunService.PreSimulation
 
 	local AnimLibrary = {}
@@ -274,8 +282,8 @@ getgenv().playanim = function(id, speed, isDance, customInstance)
 
 	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
 
-	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-	currentanim.Speed = speed
-	currentanim.Looped = false
-	currentanim:Play()
+	getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
+	getgenv().currentanim.Speed = speed
+	getgenv()currentanim.Looped = false
+	getgenv().currentanim:Play()
 end
