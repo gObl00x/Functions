@@ -266,7 +266,7 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-getgenv().playanim = function(id, speed, isDance, customInstance)
+getgenv().playanim = function(id, speed, looped, isDance, customInstance)
 	speed = speed or 1
 
 	local asset
@@ -285,6 +285,6 @@ getgenv().playanim = function(id, speed, isDance, customInstance)
 
 	getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
 	getgenv().currentanim.Speed = speed
-	getgenv().currentanim.Looped = false
+	getgenv().currentanim.Looped = looped
 	getgenv().currentanim:Play()
 end
