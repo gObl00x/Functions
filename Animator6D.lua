@@ -284,6 +284,6 @@ getgenv().playanim = function(id, speed, isDance, customInstance)
 
 	getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
 	getgenv().currentanim.Speed = speed
-	getgenv()currentanim.Looped = false
+	getgenv().currentanim.Looped = false
 	getgenv().currentanim:Play()
 end
