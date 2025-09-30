@@ -4,16 +4,17 @@ Step 1: Make a loadstring with this code
 Step 2: Use this inside a tool, key, or simply outside the loadstring.
 Step 3: write your code like this:
   getgenv().animPath = (path of a model's AnimSaves)
-Step 4: u already have the anim
+Step 4: u alr have the anim
 --]]
---
+
+-- Originally made by idk who & edited by gObl00x
 local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
 --
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-local fallback = getgenv().animPath
+local fallback = _G.animPath
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
