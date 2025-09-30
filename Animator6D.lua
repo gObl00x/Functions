@@ -266,9 +266,9 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-getgenv().playanim = function(id, speed, looped, isDance, customInstance)
+getgenv().playanim = function(id, speed, looped, customPath, isDance, customInstance)
 	speed = speed or 1
-
+local animPath = customPath or _G.animPath
 	local asset
 	if customInstance then
 		asset = customInstance
