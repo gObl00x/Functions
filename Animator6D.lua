@@ -3,7 +3,7 @@
 Step 1: Make a loadstring with this code
 Step 2: Use this inside a tool, key, or simply outside the loadstring.
 Step 3: write your code like this:
-  getgenv().animPath = (path of a model's AnimSaves)
+  _G.animPath = (path of a model's AnimSaves)
 Step 4: u alr have the anim
 --]]
 
@@ -266,9 +266,9 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-getgenv().playanim = function(id, speed, looped, customPath, isDance, customInstance)
+getgenv().playanim = function(id, speed, looped, isDance, customInstance)
 	speed = speed or 1
-local animPath = customPath or _G.animPath
+
 	local asset
 	if customInstance then
 		asset = customInstance
