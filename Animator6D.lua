@@ -266,25 +266,20 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-getgenv().playanim = function(id, speed, looped, isDance, customInstance)
-	speed = speed or 1
+function getgenv().playanim(animData, speed, looped)
+    local keyframes
+	
+    if typeof(animData) == "Instance" and animData:IsA("KeyframeSequence") then
+        keyframes = animData
 
-	local asset
-	if customInstance then
-		asset = customInstance
-	else
-		asset = is:LoadLocalAsset(id)
+    elseif typeof(animData) == "number" or typeof(animData) == "string" then
+        local obj = game:GetObjects("rbxassetid://"..animData)[1]
+        keyframes = obj:FindFirstChildOfClass("KeyframeSequence")
+    end
+
+    if not keyframes then
+        warn("Anim not found")
+        return
 	end
-
-	if currentanim then
-		currentanim:Stop()
-	end
-	iscurrentadance = isDance
-
-	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
-
-	getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-	getgenv().currentanim.Speed = speed
-	getgenv().currentanim.Looped = looped
-	getgenv().currentanim:Play()
+    getgenv().currentanim = playKeyframeSequence(keyframes, speed or 1, looped)
 end
