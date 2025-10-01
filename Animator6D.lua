@@ -5,18 +5,21 @@ Step 2: Use this inside a tool, key, or simply outside the loadstring.
 Step 3: write your code above the loadstring like this:
   _G.animPath = (path of a model's AnimSaves)
 Step 4: put ts below the loadstring:
-  getgenv().playanim(id, 1, true)
+  Animator(animPath, 1, true)
 Step 5: u alr have the anim
 --]]
 
 -- Originally made by idk who & edited by gObl00x
+ -- Variables
 local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
 --
+
+getgenv.Animator = function(animPath, getgenv().currentanim:Play())
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-local fallback = _G.animPath
+local fallback = animPath
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
@@ -268,9 +271,9 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-getgenv().playanim = function(id, speed, looped, customPath, isDance, customInstance)
+local function playanim(id, speed, looped, customPath, isDance, customInstance)
 	speed = speed or 1
-local animPath = customPath or _G.animPath
+
 	local asset
 	if customInstance then
 		asset = customInstance
@@ -290,3 +293,8 @@ local animPath = customPath or _G.animPath
 	getgenv().currentanim.Looped = looped
 	getgenv().currentanim:Play()
 end
+
+-- PlayAnim function
+playanim(ID, 1, true)
+end
+ -- // THE END \\ --
