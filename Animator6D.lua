@@ -5,7 +5,7 @@ Step 2: Use this inside a tool, key, or simply outside the loadstring.
 Step 3: write your code above the loadstring like this:
   animPath = (path of a model's AnimSaves)
 Step 4: put ts below the loadstring:
-  getgenv().Animator6D(animPath, 1, true)
+  getgenv()["Animator6D"](animPath, 1, true)
 Step 5: u alr have the anim
 --]]
 
@@ -16,7 +16,7 @@ local character = player.Character
 local humanoid = character.Humanoid
 --
 
-getgenv.Animator6D = function(animPath, speed, looped)
+getgenv()["Animator6D"] = function(animPath, speed, looped)
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
 local fallback = animPath
