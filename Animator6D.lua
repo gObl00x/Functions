@@ -2,9 +2,7 @@
 -- Step 1: loadstring(game:HttpGet("https://raw.githubusercontent.com/gObl00x/Stuff/refs/heads/main/Animator6D.lua"))()
 -- Step 2: getgenv().Animator6D(HERE_ANIM_ID, 1, true)
 
--- Variables
-local players = game:GetService("Players")
-local player = players.LocalPlayer
+local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
 -- Convert KFS to table
@@ -36,7 +34,10 @@ local function AutoGetMotor6D(model)
 	local motors = {}
 	for _, part in ipairs(model:GetDescendants()) do
 		if part:IsA("Motor6D") then
-			motors[part.Part1.Name] = part
+			motors[part.Name] = part
+			if part.Part1 then
+				motors[part.Part1.Name] = part
+			end
 		end
 	end
 	return motors
