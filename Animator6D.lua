@@ -16,17 +16,56 @@ local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
 --
-getgenv()["Animator6D.lua"] = function(id, speed, looped)
+getgenv()["Animator6D.lua"] = function(idOrInstance, speed, looped)
 local is = newproxy(true)
-local function loadAnimation(id)
-	local ok, obj = pcall(function()
-		return game:GetObjects("rbxassetid://"..id)[1]
-	end)
-	if ok and obj and obj:IsA("KeyframeSequence") then
-		return obj
-	end
-	return nil
+local function loadAnimation(idOrInstance)
+    if typeof(idOrInstance) == "Instance" then
+        local inst = idOrInstance
+        if inst:IsA("KeyframeSequence") then return inst end
+        if inst:IsA("ObjectValue") and inst.Value and inst.Value:IsA("KeyframeSequence") then
+            return inst.Value
+        end
+
+        local kfs = inst:FindFirstChildOfClass("KeyframeSequence")
+        if kfs then return kfs end
+        if inst:FindFirstChild("AnimSaves") then
+            kfs = inst.AnimSaves:FindFirstChildOfClass("KeyframeSequence")
+            if kfs then return kfs end
+        end
+        if inst:FindFirstChild("Animations") then
+            kfs = inst.Animations:FindFirstChildOfClass("KeyframeSequence")
+            if kfs then return kfs end
+        end
+
+        for _,v in ipairs(inst:GetDescendants()) do
+            if v:IsA("KeyframeSequence") then return v end
+        end
+        return nil
+    end
+
+    local ok, obj = pcall(function()
+        return game:GetObjects("rbxassetid://" .. tostring(idOrInstance))[1]
+    end)
+    if not ok or not obj then return nil end
+
+    if obj:IsA("KeyframeSequence") then return obj end
+    local kfs = obj:FindFirstChildOfClass("KeyframeSequence")
+    if kfs then return kfs end
+    if obj:FindFirstChild("AnimSaves") then
+        kfs = obj.AnimSaves:FindFirstChildOfClass("KeyframeSequence")
+        if kfs then return kfs end
+    end
+    if obj:FindFirstChild("Animations") then
+        kfs = obj.Animations:FindFirstChildOfClass("KeyframeSequence")
+        if kfs then return kfs end
+    end
+    for _,v in ipairs(obj:GetDescendants()) do
+        if v:IsA("KeyframeSequence") then return v end
+    end
+
+    return nil
 end
+
 getmetatable(is).__namecall = function(_, id)
 	return loadAnimation(id)
 end
@@ -261,30 +300,32 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-local function playanim(id, speed, looped, customPath, isDance, customInstance)
-	speed = speed or 1
+local function playanim(idOrInstance, speed, looped, isDance, customInstance)
+    speed = speed or 1
 
-	local asset
-	if customInstance then
-		asset = customInstance
-	else
-		asset = loadAnimation(id)
-	end
+    local keyframeSeq
+    if customInstance and typeof(customInstance) == "Instance" and customInstance:IsA("KeyframeSequence") then
+        keyframeSeq = customInstance
+    else
+        keyframeSeq = loadAnimation(idOrInstance)
+    end
 
-	if currentanim then
-		currentanim:Stop()
-	end
-	iscurrentadance = isDance
+    if not keyframeSeq then
+        warn("[Animator6D] No KeyframeSequence encontrado para:", tostring(idOrInstance))
+        return
+    end
 
-	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
+    if currentanim then
+        currentanim:Stop()
+    end
+    iscurrentadance = isDance
 
-	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-	currentanim.Speed = speed
-	currentanim.Looped = looped
-	currentanim:Play()
+    currentanim = animplayer.new(rigTable, keyframeSeq, nil, "Motor6D")
+    currentanim.Speed = speed
+    currentanim.Looped = (looped == nil) and true or looped
+    currentanim:Play()
+    
+    getgenv().currentanim = currentanim
 end
-
--- PlayAnim function
-playanim(id, 1, true)
 end
  -- // THE END \\ --
