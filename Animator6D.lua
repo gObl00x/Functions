@@ -16,6 +16,8 @@ local character = player.Character
 local humanoid = character.Humanoid
 
 getgenv()["Animator6D.lua"] = function(id, speed, looped)
+--local is = game:GetService("InsertService")
+--// userdata propaganda
 local is = newproxy(true)
 local function loadlocalasset(id)
 local id = tostring(id)
@@ -31,7 +33,7 @@ getmetatable(is).__namecall = function(_, id)
     return loadlocalasset(id)
 end
 
-local OApi = loadstring(game:HttpGet("https://raw.githubusercontent.com/somethingsimade/Utils/refs/heads/main/OxideApi"))()
+local Api = loadstring(game:HttpGet("https://raw.githubusercontent.com/somethingsimade/Utils/refs/heads/main/OxideApi"))()
 
 local playbacktrack = true
 local script = Instance.new('LocalScript')
@@ -261,14 +263,13 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-local function playanim(id, speed, looped, customPath, isDance, customInstance)
-speed = speed or 1
+local function playanim(id, speed, looped, isDance, customInstance)
 
 local asset  
 if customInstance then  
 	asset = customInstance  
 else  
-	asset = is:LoadLocalAsset(id)  
+	asset = game:GetService("InsertService"):LoadLocalAsset("rbxassetid://" .. id)
 end  
 
 if currentanim then  
@@ -279,10 +280,9 @@ iscurrentadance = isDance
 local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)  
 
 getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')  
-getgenv().currentanim.Speed = speed  
-getgenv().currentanim.Looped = looped  
+getgenv().currentanim.Speed = speed or 1
+getgenv().currentanim.Looped = looped or nil and looped or false
 getgenv().currentanim:Play()
-
 end
 
 -- PlayAnim function
