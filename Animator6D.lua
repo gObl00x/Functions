@@ -15,10 +15,9 @@ local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
 --
-getgenv().Animator6D = function(animValue, speed, looped)
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-local fallback = animValue
+local fallback = _G.PathValue
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
@@ -270,7 +269,7 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-local function playanim(id, speed, looped, customPath, isDance, customInstance)
+getgenv().playanim = function(id, speed, looped, customPath, isDance, customInstance)
 	speed = speed or 1
 
 	local asset
@@ -291,8 +290,5 @@ local function playanim(id, speed, looped, customPath, isDance, customInstance)
 	getgenv().currentanim.Speed = speed
 	getgenv().currentanim.Looped = looped
 	getgenv().currentanim:Play()
-end
--- PlayAnim function
-playanim(ID, 1, true)
 end
  -- // THE END \\ --
