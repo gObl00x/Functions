@@ -10,7 +10,7 @@ local character = player.Character or player.CharacterAdded:Wait()
 -- Convert KFS to table
 local function ConvertToTable(animationInstance)
 	assert(animationInstance and animationInstance:IsA("KeyframeSequence"),
-		"ConvertToTable requiere un KeyframeSequence")
+		"ConvertToTable requires a KeyframeSequence")
 
 	local keyframes = animationInstance:GetKeyframes()
 	local sequence = {}
