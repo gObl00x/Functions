@@ -24,7 +24,7 @@ local _, asset = pcall(function()
 return full[id]
 end)
 
-return asset:Clone()
+return asset
 
 end
 getmetatable(is).__namecall = function(_, id)
