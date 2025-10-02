@@ -86,7 +86,7 @@ local function ConvertToTable(kfs)
 			if desc:IsA("Pose") and desc.Weight > 0 then
 				entry.Data[desc.Name] = {
 					CFrame = desc.CFrame,
-					-- We ignore easing in this minimal version (could be added later)
+					-- ignore easing in this minimal version (could be added later) vruh
 				}
 			end
 		end
