@@ -1,11 +1,12 @@
 -- // ANIMATOR 6D \\ --
  -- Instructions:
 -- Step 1: Make a loadstring with this code
--- Step 2: Use this inside a tool, key, or simply outside the loadstring.
--- Step 3: write your code above the loadstring like this:
-  -- _G.animPath = (path of a model's AnimSaves)
+-- Step 2: Use this inside a tool, key, or simply outside the loadstring like ts:
+  -- if not getgenv()["Animator6D.lua"] then
+  --       (here the loadstring of ts animator)
+  -- end
 -- Step 4: put ts below the loadstring:
-  -- getgenv().Animator6D(animPath, 1, true)
+  -- getgenv().Animator6D(id, 1, true) -- replace ID with anim ID
 -- Step 5: u alr have the anim
 
 
@@ -15,13 +16,7 @@ local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
 --
-local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
-full.Parent = game:GetService('Workspace')
-local fallback = _G.PathValue
-fallback.Parent = full
-
---local is = game:GetService("InsertService")
---// userdata propaganda
+getgenv()["Animator6D.lua"] = function(id, speed, looped)
 local is = newproxy(true)
 local function loadlocalasset(id)
 	local id = tostring(id)
@@ -29,9 +24,6 @@ local function loadlocalasset(id)
 	local _, asset = pcall(function()
 		return full[id]
 	end)
-	if not _ or not asset then
-		asset = fallback
-	end
 
 	return asset:Clone()
 end
@@ -269,7 +261,7 @@ local rigTable = animplayer.AutoGetMotor6D(character, 'Motor6D')
 
 local currentanim = nil
 local iscurrentadance = nil
-getgenv().playanim = function(id, speed, looped, customPath, isDance, customInstance)
+local function playanim(id, speed, looped, customPath, isDance, customInstance)
 	speed = speed or 1
 
 	local asset
@@ -286,9 +278,13 @@ getgenv().playanim = function(id, speed, looped, customPath, isDance, customInst
 
 	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
 
-	getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-	getgenv().currentanim.Speed = speed
-	getgenv().currentanim.Looped = looped
-	getgenv().currentanim:Play()
+	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
+	currentanim.Speed = speed
+	currentanim.Looped = looped
+	currentanim:Play()
+end
+
+-- PlayAnim function
+playanim(id, 1, true)
 end
  -- // THE END \\ --
