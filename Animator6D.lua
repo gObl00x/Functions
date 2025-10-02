@@ -1,25 +1,24 @@
 -- // ANIMATOR 6D \\ --
---[[Instructions:
-Step 1: Make a loadstring with this code
-Step 2: Use this inside a tool, key, or simply outside the loadstring.
-Step 3: write your code above the loadstring like this:
-  animPath = (path of a model's AnimSaves)
-Step 4: put ts below the loadstring:
-  getgenv()["Animator6D"](animPath, 1, true)
-Step 5: u alr have the anim
---]]
+ -- Instructions:
+-- Step 1: Make a loadstring with this code
+-- Step 2: Use this inside a tool, key, or simply outside the loadstring.
+-- Step 3: write your code above the loadstring like this:
+  -- _G.animPath = (path of a model's AnimSaves)
+-- Step 4: put ts below the loadstring:
+  -- getgenv().Animator6D(animPath, 1, true)
+-- Step 5: u alr have the anim
+
 
 -- Originally made by idk who & edited by gObl00x
- -- Variables
+ -- Player Variables
 local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
 --
-
-getgenv()["Animator6D"] = function(animPath, speed, looped)
+getgenv().Animator6D = function(animValue, speed, looped)
 local full = game:GetObjects('rbxassetid://107495486817639')[1]:Clone()
 full.Parent = game:GetService('Workspace')
-local fallback = animPath
+local fallback = animValue
 fallback.Parent = full
 
 --local is = game:GetService("InsertService")
@@ -293,7 +292,6 @@ local function playanim(id, speed, looped, customPath, isDance, customInstance)
 	getgenv().currentanim.Looped = looped
 	getgenv().currentanim:Play()
 end
-
 -- PlayAnim function
 playanim(ID, 1, true)
 end
