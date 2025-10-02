@@ -18,17 +18,17 @@ local humanoid = character.Humanoid
 --
 getgenv()["Animator6D.lua"] = function(id, speed, looped)
 local is = newproxy(true)
-local function loadlocalasset(id)
-	local id = tostring(id)
-	local id = id:gsub('^rbxassetid://', '')
-	local _, asset = pcall(function()
-		return full[id]
+local function loadAnimation(id)
+	local ok, obj = pcall(function()
+		return game:GetObjects("rbxassetid://"..id)[1]
 	end)
-
-	return asset:Clone()
+	if ok and obj and obj:IsA("KeyframeSequence") then
+		return obj
+	end
+	return nil
 end
 getmetatable(is).__namecall = function(_, id)
-	return loadlocalasset(id)
+	return loadAnimation(id)
 end
 
 local randomaura = Instance.new('Part', game:GetService('RunService'))
@@ -268,7 +268,7 @@ local function playanim(id, speed, looped, customPath, isDance, customInstance)
 	if customInstance then
 		asset = customInstance
 	else
-		asset = is:LoadLocalAsset(id)
+		asset = loadAnimation(id)
 	end
 
 	if currentanim then
@@ -278,10 +278,10 @@ local function playanim(id, speed, looped, customPath, isDance, customInstance)
 
 	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
 
-	getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-	getgenv().currentanim.Speed = speed
-	getgenv().currentanim.Looped = looped
-	getgenv().currentanim:Play()
+	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
+	currentanim.Speed = speed
+	currentanim.Looped = looped
+	currentanim:Play()
 end
 
 -- PlayAnim function
