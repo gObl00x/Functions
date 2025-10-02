@@ -278,10 +278,10 @@ local function playanim(id, speed, looped, customPath, isDance, customInstance)
 
 	local keyframeTable = animplayer.KeyFrameSequanceToTable(asset)
 
-	currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
-	currentanim.Speed = speed
-	currentanim.Looped = looped
-	currentanim:Play()
+	getgenv().currentanim = animplayer.new(rigTable, asset, nil, nil, 'Motor6D')
+	getgenv().currentanim.Speed = speed
+	getgenv().currentanim.Looped = looped
+	getgenv().currentanim:Play()
 end
 
 -- PlayAnim function
