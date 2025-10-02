@@ -16,9 +16,8 @@ local character = player.Character
 local humanoid = character.Humanoid
 
 getgenv()["Animator6D.lua"] = function(id, speed, looped)
---local is = game:GetService("InsertService")
+local is = game:GetService("InsertService")
 --// userdata propaganda
-local is = newproxy(true)
 local function loadlocalasset(id)
 local id = tostring(id)
 local id = id:gsub('^rbxassetid://', '')
@@ -269,7 +268,7 @@ local asset
 if customInstance then  
 	asset = customInstance  
 else  
-	asset = game:GetService("InsertService"):LoadLocalAsset("rbxassetid://" .. id)
+	asset = is:LoadLocalAsset(id)
 end  
 
 if currentanim then  
