@@ -2,7 +2,7 @@
  -- Instructions:
 -- Step 1: Make a loadstring with this code
 -- Step 2: Use this inside a tool, key, or simply outside the loadstring like ts:
-  -- if not getgenv()["Animator6D.lua"] then
+  -- if not getgenv().Animator6D then
   --       (here the loadstring of ts animator)
   -- end
 -- Step 4: put ts below the loadstring:
@@ -16,7 +16,7 @@ local player = game.Players.LocalPlayer
 local character = player.Character
 local humanoid = character.Humanoid
 --
-getgenv()["Animator6D.lua"] = function(idOrInstance, speed, looped)
+getgenv().Animator6D = function(idOrInstance, speed, looped)
 local is = newproxy(true)
 local function loadAnimation(idOrInstance)
     if typeof(idOrInstance) == "Instance" then
