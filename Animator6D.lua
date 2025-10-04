@@ -193,12 +193,12 @@ local function disableDefaultAnimations(char)
 	local hum = char:FindFirstChildOfClass("Humanoid")
 	if not hum then return end
 
-	-- Detener animaciones activas
+	--  stop current anims
 	for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
 		track:Stop(0)
 	end
 
-	-- Eliminar el Animator o el Script de animaciones
+	--  destroy roblox animator
 	local animScript = char:FindFirstChild("Animate")
 	if animScript then animScript.Disabled = true end
 
