@@ -1,264 +1,285 @@
--- Minimal / robust Animator6D (copy into your loadstring)
-if getgenv().Animator6DLoaded then return end
-getgenv().Animator6DLoaded = true
+-- // Animator6D Pro (R6 Universal + Blending Final) //
+-- Made by gObl00x + GPT-5
+-- Features: smooth transitions, universal rig support, safe CFrame restoring
+-- Ya sorry, I don't think I'll die from writing this shit on a shitty phone for 90 years, thanks GPT
+
+if getgenv().Animator6DLoadedPro then return end
+getgenv().Animator6DLoadedPro = true
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
+local InsertService = game:GetService("InsertService")
+
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:FindFirstChildOfClass("Humanoid")
 
-local animCache = {} -- cache for GetObjects
+local animCache = {}
 
--- Load KeyframeSequence from id or instance (returns KeyframeSequence or nil)
+------------------------------------------------------------
+-- here u can get all the limbs
+------------------------------------------------------------
+local R6Map = {
+	["Head"] = "Neck",
+	["Torso"] = "RootJoint",
+	["Right Arm"] = "Right Shoulder",
+	["Left Arm"] = "Left Shoulder",
+	["Right Leg"] = "Right Hip",
+	["Left Leg"] = "Left Hip"
+}
+
+------------------------------------------------------------
+-- load anim from id or instance
+------------------------------------------------------------
 local function loadKeyframeSequence(idOrInstance)
-	-- instance path
 	if typeof(idOrInstance) == "Instance" then
-		local inst = idOrInstance
-		if inst:IsA("KeyframeSequence") then return inst end
-		if inst:IsA("ObjectValue") and inst.Value and inst.Value:IsA("KeyframeSequence") then
-			return inst.Value
+		if idOrInstance:IsA("KeyframeSequence") then
+			return idOrInstance
 		end
-		local k = inst:FindFirstChildOfClass("KeyframeSequence")
-		if k then return k end
-		if inst:FindFirstChild("AnimSaves") then
-			k = inst.AnimSaves:FindFirstChildOfClass("KeyframeSequence")
-			if k then return k end
-		end
-		if inst:FindFirstChild("Animations") then
-			k = inst.Animations:FindFirstChildOfClass("KeyframeSequence")
-			if k then return k end
-		end
-		for _,v in ipairs(inst:GetDescendants()) do
+		for _,v in ipairs(idOrInstance:GetDescendants()) do
 			if v:IsA("KeyframeSequence") then return v end
 		end
 		return nil
 	end
 
-	-- id path (string/number)
 	local idStr = tostring(idOrInstance)
-	if animCache[idStr] then
-		return animCache[idStr]
+	if animCache[idStr] then return animCache[idStr] end
+
+	local obj
+	local ok, result = pcall(function()
+		return InsertService:LoadAsset(idStr)
+	end)
+
+	if ok and result then
+		obj = result
+	else
+		local ok2, result2 = pcall(function()
+			return game:GetObjects("rbxassetid://".. idStr)[1]
+		end)
+		if ok2 and result2 then
+			obj = result2
+		else
+			warn("[Animator6D] ❌ Failed to load animation:", idStr)
+			return nil
+		end
 	end
 
-	local ok, obj = pcall(function()
-		return game:GetObjects("rbxassetid://" .. idStr)[1]
-	end)
-	if not ok or not obj then
-		warn("[Animator6D] game:GetObjects failed for id:", idStr)
+	local kfs
+	for _,v in ipairs(obj:GetDescendants()) do
+		if v:IsA("KeyframeSequence") then
+			kfs = v
+			break
+		end
+	end
+
+	if not kfs then
+		warn("[Animator6D] ⚠️ No KeyframeSequence found in asset:", idStr)
 		return nil
 	end
 
-	-- try common places
-	if obj:IsA("KeyframeSequence") then
-		animCache[idStr] = obj
-		return obj
-	end
-	local kfs = obj:FindFirstChildOfClass("KeyframeSequence")
-	if kfs then animCache[idStr] = kfs return kfs end
-	if obj:FindFirstChild("AnimSaves") then
-		kfs = obj.AnimSaves:FindFirstChildOfClass("KeyframeSequence")
-		if kfs then animCache[idStr] = kfs return kfs end
-	end
-	if obj:FindFirstChild("Animations") then
-		kfs = obj.Animations:FindFirstChildOfClass("KeyframeSequence")
-		if kfs then animCache[idStr] = kfs return kfs end
-	end
-	for _,v in ipairs(obj:GetDescendants()) do
-		if v:IsA("KeyframeSequence") then
-			animCache[idStr] = v
-			return v
-		end
-	end
-
-	warn("[Animator6D] No KeyframeSequence found inside asset id:", idStr)
-	return nil
+	animCache[idStr] = kfs
+	return kfs
 end
 
--- Convert KeyframeSequence -> table (simple, safe)
+------------------------------------------------------------
+-- kfs to frame table
+------------------------------------------------------------
 local function ConvertToTable(kfs)
-	assert(kfs and kfs:IsA("KeyframeSequence"), "ConvertToTable needs KeyframeSequence")
+	assert(kfs and kfs:IsA("KeyframeSequence"), "Expected KeyframeSequence")
 	local frames = kfs:GetKeyframes()
 	local seq = {}
-	for i, frame in ipairs(frames) do
+	for _, frame in ipairs(frames) do
 		local entry = { Time = frame.Time, Data = {} }
-		for _, desc in ipairs(frame:GetDescendants()) do
-			if desc:IsA("Pose") and desc.Weight > 0 then
-				entry.Data[desc.Name] = {
-					CFrame = desc.CFrame,
-					-- We ignore easing in this minimal version (could be added later)
-				}
+		for _, pose in ipairs(frame:GetDescendants()) do
+			if pose:IsA("Pose") and pose.Weight > 0 then
+				entry.Data[pose.Name] = { CFrame = pose.CFrame }
 			end
 		end
-		seq[i] = entry
+		table.insert(seq, entry)
 	end
 	table.sort(seq, function(a,b) return a.Time < b.Time end)
 	return seq, kfs.Loop
 end
 
--- Build motor maps with multiple keys for maximum compatibility
-local function BuildMotorMaps(rig)
-	local map = {}
-	local mapLower = {}
-	for _, v in ipairs(rig:GetDescendants()) do
-		if v:IsA("Motor6D") then
-			-- map by motor name and by connected part names
-			map[v.Name] = v
-			mapLower[string.lower(v.Name)] = v
-			if v.Part0 then
-				map[v.Part0.Name] = v
-				mapLower[string.lower(v.Part0.Name)] = v
-			end
-			if v.Part1 then
-				map[v.Part1.Name] = v
-				mapLower[string.lower(v.Part1.Name)] = v
-			end
+------------------------------------------------------------
+-- create Motor6D map
+------------------------------------------------------------
+local function BuildMotorMap(rig)
+	local map, lower = {}, {}
+	for _,m in ipairs(rig:GetDescendants()) do
+		if m:IsA("Motor6D") then
+			map[m.Name] = m
+			lower[string.lower(m.Name)] = m
 		end
 	end
-	return map, mapLower
+	return map, lower
 end
 
--- find best motor for a given pose name using heuristics
-local function FindMotorForPose(poseName, map, mapLower)
-	if map[poseName] then return map[poseName] end
-	local low = string.lower(poseName)
-	if mapLower[low] then return mapLower[low] end
-	-- try compacted (remove spaces/underscores)
-	local compact = low:gsub("[%s_]", "")
-	if mapLower[compact] then return mapLower[compact] end
-	-- substring match (loose)
-	for k,v in pairs(mapLower) do
-		if k:find(compact, 1, true) or compact:find(k, 1, true) then
-			return v
-		end
-	end
+------------------------------------------------------------
+-- Search Motor6D with the poseName
+------------------------------------------------------------
+local function FindMotor(poseName, map, lower)
+	local match = R6Map[poseName] or poseName
+	if map[match] then return map[match] end
+	local low = string.lower(match)
+	if lower[low] then return lower[low] end
 	return nil
 end
 
--- AnimPlayer object
+local function LerpCFrame(cf1, cf2, t)
+	return cf1:Lerp(cf2, t)
+end
+
+------------------------------------------------------------
+-- have control in the anim
+------------------------------------------------------------
 local AnimPlayer = {}
 AnimPlayer.__index = AnimPlayer
 
-function AnimPlayer.new(rigModel, keyframeSeq)
+function AnimPlayer.new(rig, kfs)
 	local self = setmetatable({}, AnimPlayer)
-	self.rig = rigModel
-	self.keyframeSeq = keyframeSeq
-	self.Animation, self.Looped = ConvertToTable(keyframeSeq)
-	self.Length = self.Animation[#self.Animation].Time
-	self.TimePosition = 0
-	self.Playing = false
-	self.map, self.mapLower = BuildMotorMaps(rigModel)
+	self.rig = rig
+	self.seq, self.looped = ConvertToTable(kfs)
+	self.map, self.lower = BuildMotorMap(rig)
+	self.time = 0
+	self.playing = false
+	self.length = self.seq[#self.seq].Time
+	self.speed = 1
+	self.motorsC0 = {}
+	for _,m in pairs(self.map) do
+		self.motorsC0[m] = m.C0
+	end
 	return self
 end
 
-function AnimPlayer:Play(speed, looped)
-	if self.Playing then return end
-	self.Playing = true
-	self.Speed = speed or 1
-	self.Looped = (looped == nil) and true or looped
+------------------------------------------------------------
+-- PLAY 
+------------------------------------------------------------
+function AnimPlayer:Play(speed, loop)
+	if self.playing then return end
+	self.playing = true
+	self.speed = speed or 1
+	self.looped = (loop == nil) and true or loop
 
-	-- debug: list how many poses and motors we have
-	local posesSet = {}
-	for _,frame in ipairs(self.Animation) do
-		for pname,_ in pairs(frame.Data) do posesSet[pname] = true end
-	end
-	local poseCount, motorCount = 0, 0
-	for _ in pairs(posesSet) do poseCount = poseCount + 1 end
-	for _ in pairs(self.map) do motorCount = motorCount + 1 end
-	warn(("[Animator6D] Playing animation: poses=%d motors=%d length=%.3f speed=%.2f"):format(poseCount, motorCount, self.Length, self.Speed))
+	self.conn = RunService.Heartbeat:Connect(function(dt)
+		if not self.playing then return end
+		self.time += dt * self.speed
 
-	-- list missing poses (non-blocking)
-	local missing = {}
-	for pname,_ in pairs(posesSet) do
-		if not FindMotorForPose(pname, self.map, self.mapLower) then
-			table.insert(missing, pname)
-		end
-	end
-	if #missing > 0 then
-		warn("[Animator6D] No motors found for poses (examples):", table.concat(missing, ", ", 1, math.min(#missing,10)))
-	end
-
-	self._conn = RunService.PreSimulation:Connect(function(dt)
-		if not self.Playing then return end
-		local dtScaled = dt * (self.Speed or 1)
-		local pos = self.TimePosition + dtScaled
-		if pos > self.Length then
-			if self.Looped then
-				pos = pos - self.Length
+		if self.time > self.length then
+			if self.looped then
+				self.time -= self.length
 			else
-				pos = self.Length
 				self:Stop()
 				return
 			end
 		end
-		self.TimePosition = pos
 
-		-- find surrounding frames
-		local prev, next = self.Animation[1], self.Animation[#self.Animation]
-		for i = 1, #self.Animation - 1 do
-			if self.Animation[i].Time <= pos and self.Animation[i+1].Time >= pos then
-				prev, next = self.Animation[i], self.Animation[i+1]
+		local prev, next = self.seq[1], self.seq[#self.seq]
+		for i = 1, #self.seq - 1 do
+			if self.seq[i].Time <= self.time and self.seq[i+1].Time >= self.time then
+				prev, next = self.seq[i], self.seq[i+1]
 				break
 			end
 		end
 
 		local span = next.Time - prev.Time
-		local alpha = (span > 0) and ((pos - prev.Time) / span) or 0
+		local alpha = (span > 0) and ((self.time - prev.Time) / span) or 0
 
-		for jointName, prevData in pairs(prev.Data) do
-			local nextData = next.Data[jointName] or prevData
-			local motor = FindMotorForPose(jointName, self.map, self.mapLower)
-			if motor and prevData.CFrame and nextData.CFrame then
-				local cf = prevData.CFrame:Lerp(nextData.CFrame, alpha)
-				-- apply to Motor6D.Transform
-				local ok, err = pcall(function() motor.Transform = cf end)
-				if not ok then
-					-- if .Transform fails for some reason, ignore silently (but can warn)
-					-- warn("[Animator6D] failed to set Transform for", motor.Name, err)
-				end
+		for joint, prevData in pairs(prev.Data) do
+			local nextData = next.Data[joint] or prevData
+			local motor = FindMotor(joint, self.map, self.lower)
+			if motor then
+				local cf = LerpCFrame(prevData.CFrame, nextData.CFrame, alpha)
+				pcall(function()
+					motor.C0 = self.motorsC0[motor] * cf
+				end)
 			end
 		end
 	end)
 end
 
+------------------------------------------------------------
+-- STOP and resets the body to normal
+------------------------------------------------------------
 function AnimPlayer:Stop()
-	self.Playing = false
-	if self._conn then self._conn:Disconnect() self._conn = nil end
-	-- reset transforms to identity
+	self.playing = false
+	if self.conn then
+		self.conn:Disconnect()
+		self.conn = nil
+	end
 	for _,m in pairs(self.map) do
-		pcall(function() m.Transform = CFrame.new() end)
+		pcall(function()
+			m.C0 = self.motorsC0[m]
+			m.Transform = CFrame.new()
+		end)
 	end
 end
 
--- public API: getgenv().Animator6D(idOrInstance, speed, looped)
-getgenv().Animator6D = function(idOrInstance, speed, looped)
-	if not player then player = Players.LocalPlayer end
-	character = player.Character or player.CharacterAdded:Wait()
-	humanoid = character:FindFirstChildOfClass("Humanoid")
+------------------------------------------------------------
+-- Disable roblox anims while is the kfs
+------------------------------------------------------------
+local function disableDefaultAnimations(char)
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum then return end
+	for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+		track:Stop(0)
+	end
+	local animateScript = char:FindFirstChild("Animate")
+	if animateScript then
+		animateScript.Disabled = true
+	end
+end
 
+------------------------------------------------------------
+-- API Global
+------------------------------------------------------------
+getgenv().Animator6D = function(idOrInstance, speed, looped)
 	local kfs = loadKeyframeSequence(idOrInstance)
 	if not kfs then
-		warn("[Animator6D] No KeyframeSequence for", tostring(idOrInstance))
+		warn("[Animator6D] ❌ Could not load animation for:", idOrInstance)
 		return
 	end
 
-	-- stop previous
-	if getgenv().currentAnimator6D and type(getgenv().currentAnimator6D.Stop) == "function" then
-		pcall(function() getgenv().currentAnimator6D:Stop() end)
-		getgenv().currentAnimator6D = nil
+	warn("[Animator6D] ✅ Loaded animation:", kfs.Name, #kfs:GetKeyframes(), "frames")
+
+	disableDefaultAnimations(character)
+
+	if getgenv().currentAnimator6D then
+		pcall(function()
+			getgenv().currentAnimator6D:Stop()
+		end)
 	end
 
-	local playerObj = AnimPlayer.new(character, kfs)
-	getgenv().currentAnimator6D = playerObj
-	playerObj:Play(speed or 1, looped)
+	local anim = AnimPlayer.new(character, kfs)
+	getgenv().currentAnimator6D = anim
+	anim:Play(speed or 1, looped)
 end
 
--- helper to stop
 getgenv().Animator6DStop = function()
 	if getgenv().currentAnimator6D then
-		pcall(function() getgenv().currentAnimator6D:Stop() end)
+		pcall(function()
+			getgenv().currentAnimator6D:Stop()
+		end)
 		getgenv().currentAnimator6D = nil
+	end
+
+	--  reset anim
+	local animateScript = character:FindFirstChild("Animate")
+	if animateScript then
+		animateScript.Disabled = false
 	end
 end
 
-warn("[Animator6D] Loaded. Use getgenv().Animator6D(idOrInstance, speed, looped)")
+warn("[Animator6D Pro] ✅ Loaded successfully (Universal + Stable Blend Edition)")
+
+--[[
+Instructions (please, if ur down here, look at ts)
+If u want to play the anim outside ts loadstring, then:
+getgenv().Animator6D(1234567890, 1, true) -- idOrInstance, Speed, Looped? --
+
+If u don't put an id, and u want it to be an instance, then:
+local anim = game:GetObjects("rbxassetid://ID")[1].. -- replace ID with the id, and replace.. with the path
+getgenv().Animator6D(anim, 1, true?
+
+If u want to stop the anim outside ts loadstring, then:
+getgenv().Animator6DStop()
+--]]
