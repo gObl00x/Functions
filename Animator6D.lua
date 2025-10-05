@@ -227,7 +227,12 @@ getgenv().Animator6DStop = function()
 end
 
 warn("[Animator6D Pro] ✅ Loaded successfully (Universal Final R6 Edition).")
-
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Animator6D Pro V3";
+    Text = "Enjoy A6DPV3 API";
+    Duration = 6;
+})
+--
 --[[
 (pls, If ur down here, read these instructions)
 Instructions:
