@@ -1,6 +1,6 @@
--- // Animator6D Pro (R6 Universal + Blending Final) //
+-- // Animator6D Pro (R6 Universal) //
 -- Made by gObl00x + GPT-5
--- Features: smooth blending, universal rig detection, restore system, safe playback
+-- Features: universal rig detection, restore system, safe playback
 -- Ya sorry, I don't think I'll die from writing this shit on a shitty phone for 90 years, thanks GPT
 
 if getgenv().Animator6DLoadedPro then return end
@@ -8,13 +8,14 @@ getgenv().Animator6DLoadedPro = true
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local InsertService = game:GetService("InsertService")
+--//local is = game:GetService("InsertService")
+local is = newproxy(true)
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local hum = character:FindFirstChildOfClass("Humanoid")
+local hum = character:WaitForChild("Humanoid")
 
-local animCache, lastMotors = {}, {}
+local animCache = {}
 
 local R6Map = {
 	["Head"] = "Neck",
@@ -40,7 +41,7 @@ local function loadKeyframeSequence(idOrInstance)
 
 	local obj
 	local ok, result = pcall(function()
-		return InsertService:LoadAsset(idStr)
+		return is:LoadLocalAsset(idStr)
 	end)
 	if ok and result then
 		obj = result
@@ -107,10 +108,6 @@ local function FindMotor(poseName, map, lower)
 	return map[match] or lower[string.lower(match)]
 end
 
-local function LerpCFrame(cf1, cf2, t)
-	return cf1:Lerp(cf2, t)
-end
-
 -- ========== ANIM PLAYER ==========
 local AnimPlayer = {}
 AnimPlayer.__index = AnimPlayer
@@ -148,24 +145,20 @@ function AnimPlayer:Play(speed, loop)
 			end
 		end
 
-		local prev, next = self.seq[1], self.seq[#self.seq]
-		for i = 1, #self.seq - 1 do
-			if self.seq[i].Time <= self.time and self.seq[i+1].Time >= self.time then
-				prev, next = self.seq[i], self.seq[i+1]
+		local prev = self.seq[1]
+		for i = 1, #self.seq do
+			if self.seq[i].Time <= self.time then
+				prev = self.seq[i]
+			else
 				break
 			end
 		end
 
-		local span = next.Time - prev.Time
-		local alpha = (span > 0) and ((self.time - prev.Time) / span) or 0
-
-		for joint, prevData in pairs(prev.Data) do
-			local nextData = next.Data[joint] or prevData
+		for joint, data in pairs(prev.Data) do
 			local motor = FindMotor(joint, self.map, self.lower)
 			if motor then
-				local cf = LerpCFrame(prevData.CFrame, nextData.CFrame, alpha)
 				pcall(function()
-					motor.C0 = self.savedC0[motor] * cf
+					motor.C0 = self.savedC0[motor] * data.CFrame
 				end)
 			end
 		end
@@ -230,7 +223,7 @@ warn("[Animator6D Pro] ✅ Loaded successfully (Universal Final R6 Edition).")
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Animator6D Pro V3";
     Text = "Enjoy A6DPV3 API";
-    Duration = 6;
+    Duration = 5;
 })
 --
 --[[
