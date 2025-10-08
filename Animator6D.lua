@@ -3,27 +3,12 @@
 -- Features: smooth blending, universal rig detection, restore system, safe playback
 -- Ya sorry, I don't think I'll die from writing this shit on a shitty phone for 90 years, thanks GPT
 
-if getgenv().Animator6DLoadedPro then
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local hum = character:FindFirstChildOfClass("Humanoid")
-    if getgenv().currentAnimator6D then
-        getgenv().currentAnimator6D.rig = character
-        getgenv().currentAnimator6D.map, getgenv().currentAnimator6D.lower = BuildMotorMap(character)
-        getgenv().currentAnimator6D.savedC0 = {}
-        for _,m in pairs(getgenv().currentAnimator6D.map) do
-            getgenv().currentAnimator6D.savedC0[m] = m.C0
-        end
-        if getgenv().currentAnimator6D.playing then
-            getgenv().currentAnimator6D:Play(getgenv().currentAnimator6D.speed, getgenv().currentAnimator6D.looped)
-        end
-    end
-else
-    getgenv().Animator6DLoadedPro = true
+if getgenv().Animator6DLoadedPro then return end
+getgenv().Animator6DLoadedPro = true
+
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
---local is = game:GetService("InsertService")
-local is = newproxy(true)
+local InsertService = game:GetService("InsertService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -55,7 +40,7 @@ local function loadKeyframeSequence(idOrInstance)
 
 	local obj
 	local ok, result = pcall(function()
-		return is:LoadLocalAsset(idStr)
+		return InsertService:LoadAsset(idStr)
 	end)
 	if ok and result then
 		obj = result
@@ -240,16 +225,14 @@ getgenv().Animator6DStop = function()
 		getgenv().currentAnimator6D = nil
 	end
 end
---
+
 warn("[Animator6D Pro] ✅ Loaded successfully (Universal Final R6 Edition).")
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Animator6D Pro V3";
     Text = "Enjoy A6DPV3 API";
-    Duration = 15;
+    Duration = 6;
 })
-end -- ts sht Close "then"
-
-
+--
 --[[
 (pls, If ur down here, read these instructions)
 Instructions:
