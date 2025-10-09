@@ -2,7 +2,7 @@
 --||                Animator6D Pro V4 (R6)             ||--
 --||  Author: gObl00x + GPT-5                         ||--
 --||  Features: universal rig, local cache, safe play  ||--
---|| Ya sorry, I dont want to die cuz writing this shit on a shitty phone for like 90 years, thanks GPT
+--|| Ya sorry, I dont want to die cuz writing this shit on a shitty phone for 90 years, thanks GPT
 --\\====================================================//--
 
 if getgenv().Animator6DLoadedPro then return end
@@ -63,7 +63,7 @@ local R6Map = {
 
 -- ========== KEYFRAME PARSER ==========
 local function ConvertToTable(kfs)
-	assert(kfs and kfs:IsA("KeyframeSequence"), "Expected KeyframeSequence")
+	assert(kfs and typeof(kfs) == "Instance" and kfs:IsA('KeyframeSequence'), "Expected KeyframeSequence")
 	local seq = {}
 	for _, frame in ipairs(kfs:GetKeyframes()) do
 		local entry = { Time = frame.Time, Data = {} }
