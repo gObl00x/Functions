@@ -1,20 +1,56 @@
--- // Animator6D Pro (R6 Universal) //
--- Made by gObl00x + GPT-5
--- Features: universal rig detection, restore system, safe playback
--- Ya sorry, I don't think I'll die from writing this shit on a shitty phone for 90 years, thanks GPT
+--//====================================================\\--
+--||                Animator6D Pro V4 (R6)             ||--
+--||  Author: gObl00x + GPT-5                         ||--
+--||  Features: universal rig, local cache, safe play  ||--
+--|| Ya sorry, I dont want to die cuz writing this shit on a shitty phone for 90 years, thanks GPT
+--\\====================================================//--
 
 if getgenv().Animator6DLoadedPro then return end
 getgenv().Animator6DLoadedPro = true
 
-local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local InsertService = game:GetService("InsertService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hum = character:WaitForChild("Humanoid")
 
-local animCache = {}
+-- ========== LOCAL CACHE / 403 EVASION ==========
+local LocalAssetCache = {}
+local fullModel = nil
+pcall(function()
+	fullModel = game:GetObjects("rbxassetid://107495486817639")[1]
+	if fullModel then
+		fullModel.Parent = workspace
+	end
+end)
+
+local function LoadLocalAsset(id)
+	id = tostring(id):gsub("^rbxassetid://", "")
+	if LocalAssetCache[id] then
+		return LocalAssetCache[id]
+	end
+
+	local found = fullModel and fullModel:FindFirstChild(id, true)
+	if found then
+		LocalAssetCache[id] = found
+		warn("[Animator6D] ✅ Loaded from local cache:", id)
+		return found
+	end
+
+	local ok, obj = pcall(function()
+		return game:GetObjects("rbxassetid://" .. id)[1]
+	end)
+	if ok and obj then
+		LocalAssetCache[id] = obj
+		warn("[Animator6D] ✅ Loaded via GetObjects👍👍:", id)
+		return obj
+	end
+
+	warn("[Animator6D] ts is bad, failed to load animation:", id)
+	return nil
+end
+-- ===============================================
 
 local R6Map = {
 	["Head"] = "Neck",
@@ -25,59 +61,23 @@ local R6Map = {
 	["Left Leg"] = "Left Hip"
 }
 
--- ========== LOAD SYSTEM ==========
-local function loadKeyframeSequence(idOrInstance)
-	if typeof(idOrInstance) == "Instance" then
-		if idOrInstance:IsA("KeyframeSequence") then return idOrInstance end
-		for _,v in ipairs(idOrInstance:GetDescendants()) do
-			if v:IsA("KeyframeSequence") then return v end
-		end
-		return nil
-	end
-
-	local idStr = tostring(idOrInstance)
-	if animCache[idStr] then return animCache[idStr] end
-
-	local obj
-	local ok, result = pcall(function()
-		return InsertService:LoadAsset(idStr)
-	end)
-	if ok and result then
-		obj = result
-	else
-		local ok2, result2 = pcall(function()
-			return game:GetObjects("rbxassetid://".. idStr)[1]
-		end)
-		if ok2 and result2 then
-			obj = result2
-		else
-			warn("[Animator6D] ❌ Failed to load animation:", idStr)
-			return nil
-		end
-	end
-
-	local kfs
-	for _,v in ipairs(obj:GetDescendants()) do
-		if v:IsA("KeyframeSequence") then
-			kfs = v
-			break
-		end
-	end
-
-	if not kfs then
-		warn("[Animator6D] ⚠️ No KeyframeSequence found in asset:", idStr)
-		return nil
-	end
-
-	animCache[idStr] = kfs
-	return kfs
-end
-
--- ========== PARSE KEYFRAMES ==========
+-- ========== KEYFRAME PARSER  ==========
 local function ConvertToTable(kfs)
-	assert(kfs and kfs:IsA("KeyframeSequence"), "Expected KeyframeSequence")
-	local frames, seq = kfs:GetKeyframes(), {}
-	for _, frame in ipairs(frames) do
+	if not (kfs and typeof(kfs) == "Instance" and kfs:IsA("KeyframeSequence")) then
+		if typeof(kfs) == "Instance" then
+			for _, obj in ipairs(kfs:GetDescendants()) do
+				if obj:IsA("KeyframeSequence") then
+					kfs = obj
+					break
+				end
+			end
+		end
+	end
+
+	assert(kfs and typeof(kfs) == "Instance" and kfs:IsA("KeyframeSequence"), "Expected KeyframeSequence")
+
+	local seq = {}
+	for _, frame in ipairs(kfs:GetKeyframes()) do
 		local entry = { Time = frame.Time, Data = {} }
 		for _, pose in ipairs(frame:GetDescendants()) do
 			if pose:IsA("Pose") and pose.Weight > 0 then
@@ -86,14 +86,14 @@ local function ConvertToTable(kfs)
 		end
 		table.insert(seq, entry)
 	end
-	table.sort(seq, function(a,b) return a.Time < b.Time end)
+	table.sort(seq, function(a, b) return a.Time < b.Time end)
 	return seq, kfs.Loop
 end
 
--- ========== RIG MOTOR MAP ==========
+-- ========== MOTOR MAP ==========
 local function BuildMotorMap(rig)
 	local map, lower = {}, {}
-	for _,m in ipairs(rig:GetDescendants()) do
+	for _, m in ipairs(rig:GetDescendants()) do
 		if m:IsA("Motor6D") then
 			map[m.Name] = m
 			lower[string.lower(m.Name)] = m
@@ -120,7 +120,7 @@ function AnimPlayer.new(rig, kfs)
 	self.length = self.seq[#self.seq].Time
 	self.speed = 1
 	self.savedC0 = {}
-	for _,m in pairs(self.map) do
+	for _, m in pairs(self.map) do
 		self.savedC0[m] = m.C0
 	end
 	return self
@@ -172,7 +172,7 @@ function AnimPlayer:Stop(restore)
 			pcall(function() motor.C0 = origC0 end)
 		end
 	else
-		for _,m in pairs(self.map) do
+		for _, m in pairs(self.map) do
 			pcall(function() m.Transform = CFrame.new() end)
 		end
 	end
@@ -190,14 +190,23 @@ local function disableDefaultAnimations(char)
 	if animator then animator:Destroy() end
 end
 
--- ========== UNIVERSAL INTERFACE ==========
+-- ========== GLOBAL INTERFACE ==========
 getgenv().Animator6D = function(idOrInstance, speed, looped)
-	local kfs = loadKeyframeSequence(idOrInstance)
-	if not kfs then 
-		warn("[Animator6D] ❌ Could not load animation for:", idOrInstance)
-		return 
+	local kfs
+	if typeof(idOrInstance) == "Instance" then
+		kfs = idOrInstance:IsA("KeyframeSequence") and idOrInstance or idOrInstance:FindFirstChildOfClass("KeyframeSequence")
+	else
+		local asset = LoadLocalAsset(idOrInstance)
+		if asset then
+			kfs = asset:FindFirstChildOfClass("KeyframeSequence") or asset
+		end
 	end
-	warn("[Animator6D] ✅ Loaded animation:", kfs.Name, #kfs:GetKeyframes(), "frames")
+
+	if not kfs then
+		warn("[Animator6D] yo sorry could not load animation:", idOrInstance)
+		return
+	end
+
 	disableDefaultAnimations(character)
 
 	if getgenv().currentAnimator6D then
@@ -218,12 +227,16 @@ getgenv().Animator6DStop = function()
 	end
 end
 
-warn("[Animator6D Pro] ✅ Loaded successfully (Universal Final R6 Edition).")
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "Animator6D Pro V3";
-    Text = "Enjoy A6DPV3 API";
-    Duration = 5;
-})
+-- ========== NOTIFY ==========
+warn("[Animator6D Pro V4] ya.. Allah hotbar")
+pcall(function()
+	game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = "Animator6D Pro V4",
+		Text = "Loaded with Local Cache Support!",
+		Duration = 5
+	})
+end)
+
 --
 --[[
 (pls, If ur down here, read these instructions)
