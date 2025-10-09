@@ -61,9 +61,21 @@ local R6Map = {
 	["Left Leg"] = "Left Hip"
 }
 
--- ========== KEYFRAME PARSER ==========
+-- ========== KEYFRAME PARSER  ==========
 local function ConvertToTable(kfs)
-	assert(kfs and typeof(kfs) == "Instance" and kfs:IsA('KeyframeSequence'), "Expected KeyframeSequence")
+	if not (kfs and typeof(kfs) == "Instance" and kfs:IsA("KeyframeSequence")) then
+		if typeof(kfs) == "Instance" then
+			for _, obj in ipairs(kfs:GetDescendants()) do
+				if obj:IsA("KeyframeSequence") then
+					kfs = obj
+					break
+				end
+			end
+		end
+	end
+
+	assert(kfs and typeof(kfs) == "Instance" and kfs:IsA("KeyframeSequence"), "Expected KeyframeSequence")
+
 	local seq = {}
 	for _, frame in ipairs(kfs:GetKeyframes()) do
 		local entry = { Time = frame.Time, Data = {} }
